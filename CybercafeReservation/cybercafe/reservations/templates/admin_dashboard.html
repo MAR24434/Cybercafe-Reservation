@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <!-- Blue Bar with Title -->
+    <div class="navbar">
+        Cybercafe Reservation
+    </div>
+
+    <!-- Main container for dashboard -->
+    <div id="dashboardContainer">
+        <!-- Buttons on top of the container -->
+        <div id="dashboardButtons">
+            <button id="generateReportButton" onclick="window.location.href='{% url 'generate_report' %}'">Generate Report</button>
+            <button id="manageServicesButton" onclick="window.location.href='{% url 'manage_services' %}'">Manage Services</button>
+            <button id="manageAccountButton" onclick="window.location.href='{% url 'manage_account' %}'">Manage Account</button>
+            <!-- Filter button and Date picker -->
+            <div id="filterOptions">
+                <button type="button" id="resetButton" onclick="window.location.href='{% url 'customer_dashboard' %}'">
+                    <img src="{% static 'reset-icon.png' %}" alt="Reset" width="20px" height="20px">
+                </button>
+                <button type="submit" id="filterButton">
+                    <img src="{% static 'filter-icon.png' %}" alt="Filter" width="20px" height="20px">
+                </button>
+                <input type="date" id="filterDate" value="{{ current_date }}">
+            </div>
+        </div>
+
+        <!-- Scrollable Table for Reservations -->
+        <div id="reservationTableContainer">
+            <table id="reservationTable">
+                <thead>
+                    <tr>
+                        <th>Reservation ID</th>
+                        <th>Date</th>
+                        <th>Time</th>   
+                        <th>Payment Status</th>
+                        <th>PC Rental</th>
+                        <th>Printing Option</th>
+                        <th>Duration</th>
+                        <th>Number of Pages</th>
+                        <th>Total Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in reservations %}
+                    <tr onclick="window.location.href='{% url 'reservation_detail' reservation.reservation_id %}'">
+                        <td>{{ reservation.reservation_id }}</td>
+                        <td>{{ reservation.date }}</td>
+                        <td>{{ reservation.time }}</td>
+                        <td>{{ reservation.payment_status }}</td>
+                        <td>
+                            {% if reservation.pc_rental %}
+                                {{ reservation.pc_rental.pc_number }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if reservation.printing_option %}
+                                {{ reservation.printing_option.print_type }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>{{ reservation.duration }} hours</td>
+                        <td>{{ reservation.number_of_pages }}</td>
+                        <td>${{ reservation.total_price }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9">No reservations found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Logout button -->
+    <button id="logoutButton" onclick="window.location.href='{% url 'logout' %}'">LOG OUT</button>
+</body>
+</html>

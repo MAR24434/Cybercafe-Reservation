@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Services</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <style>
+        table tr {
+            cursor: pointer;
+        }
+        table tr:hover {
+            background-color: #f0f0f0; /* Highlight on hover */
+        }
+    </style>
+</head>
+<body>
+    <!-- Blue Bar with Title -->
+    <div class="navbar">
+        Manage Services
+    </div>
+
+    <!-- PC Rental Table -->
+    <h2>PC Rentals</h2>
+    <table>
+        <thead>
+            <tr>
+                <th></th> <!-- For Delete Button -->
+                <th>PC Number</th>
+                <th>Hourly Rate</th>
+                <th>Availability</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rental in pc_rentals %}
+            <tr onclick="window.location.href='{% url 'add_or_edit_pc_rental' rental.id %}'"> <!-- Link to Edit -->
+                <td>
+                    <button onclick="event.stopPropagation(); if(confirm('Are you sure you want to delete this rental?')) { window.location.href='{% url 'delete_pc_rental' rental.id %}'; }">Delete</button>
+                </td>
+                <td>{{ rental.pc_number }}</td>
+                <td>{{ rental.hourly_rate }}</td>
+                <td>{{ rental.is_available }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button onclick="window.location.href='{% url 'add_or_edit_pc_rental' %}'">Add PC Rental</button>
+
+    <!-- Printing Services Table -->
+    <h2>Printing Services</h2>
+    <table>
+        <thead>
+            <tr>
+                <th></th> <!-- For Delete Button -->
+                <th>Print Type</th>
+                <th>Price Per Page</th>
+                <th>Availability</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for option in printing_options %}
+            <tr onclick="window.location.href='{% url 'add_or_edit_printing_option' option.id %}'"> <!-- Link to Edit -->
+                <td>
+                    <button onclick="event.stopPropagation(); if(confirm('Are you sure you want to delete this option?')) { window.location.href='{% url 'delete_printing_option' option.id %}'; }">Delete</button>
+                </td>
+                <td>{{ option.print_type }}</td>
+                <td>{{ option.price_per_page }}</td>
+                <td>{{ option.is_available }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button onclick="window.location.href='{% url 'add_or_edit_printing_option' %}'">Add Printing Option</button>
+
+    {% if request.session.status == 'employee' %}
+        <button type="button" onclick="window.location.href='{% url 'employee_dashboard' %}'">Back To Dashboard</button>
+    {% endif %}
+    {% if request.session.status == 'admin' %}
+        <button type="button" onclick="window.location.href='{% url 'admin_dashboard' %}'">Back To Dashboard</button>
+    {% endif %}
+</body>
+</html>

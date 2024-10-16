@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Detail</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <script>
+        function confirmAction(action) {
+            return confirm(`Are you sure you want to ${action} this account?`);
+        }
+
+        function showPassword() {
+            // Show the actual password for admins only
+            const passwordField = document.getElementById('passwordField');
+            if (passwordField.textContent === '******') {
+                passwordField.textContent = '{{ account.password }}';  // Replace with actual password for admin
+            } else {
+                passwordField.textContent = '******';  // Censor again
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="navbar">
+        Cybercafe Reservation - Account Detail
+    </div>
+
+    <div id="accountContainer">
+        <h2>Account Details</h2>
+        <form method="post" action="{% url 'update_account' account.id %}">
+            {% csrf_token %}
+            <table id="accountDetailTable">
+                <tr>
+                    <th>Username</th>
+                    <td><input type="text" name="username" value="{{ account.username }}" {% if request.session.status != 'admin'%}readonly{% endif %}></td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td><input type="email" name="email" value="{{ account.email }}" {% if request.session.status != 'admin'%}readonly{% endif %}></td>
+                </tr>
+                <tr>
+                    <th>Name</th>
+                    <td><input type="text" name="name" value="{{ account.name }}" {% if request.session.status != 'admin'%}readonly{% endif %}></td>
+                </tr>
+                <tr>
+                    <th>Address</th>
+                    <td><input type="text" name="address" value="{{ account.address }}" {% if request.session.status != 'admin'%}readonly{% endif %}></td>
+                </tr>
+                <tr>
+                    <th>Phone Number</th>
+                    <td><input type="text" name="phone_number" value="{{ account.phone_number }}" {% if request.session.status != 'admin'%}readonly{% endif %}></td>
+                </tr>
+                <tr>
+                    <th>Status</th>
+                    <td><input type="text" name="status" value="{{ account.status }}" {% if request.session.status != 'admin'%}readonly{% endif %}></td>
+                </tr>
+            </table>
+    
+            <div class="buttonContainer">
+                <button type="submit" {% if request.session.status != 'admin'%}disabled{% endif %}>Update</button>
+                <button type="button" onclick="if(confirmAction('delete')) window.location.href='{% url 'delete_account' account.id %}'">Delete</button>
+                <button type="button" onclick="window.history.back()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Reservation</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <script src="{% static 'javascript.js' %}"></script>
+</head>
+<body>
+    <!-- Blue Bar with Title -->
+    <div class="navbar">
+        Cybercafe Reservation - Make Reservation
+    </div>
+
+    <!-- Container for form and text -->
+    <div id="formContainer">
+        <h2>Create Reservation</h2>
+    
+        <!-- Make Reservation Form -->
+        <form method="post" enctype="multipart/form-data" id="reservationForm">
+            {% csrf_token %}
+    
+            <!-- Reservation Type (PC Rental/Printing) -->
+            <div class="form-group">
+                <label>{{ form.pc_rental.label_tag }}</label>
+                {{ form.pc_rental }}
+            </div>
+    
+            <div class="form-group">
+                <label>{{ form.printing_option.label_tag }}</label>
+                {{ form.printing_option }}
+            </div>
+    
+            <!-- Date and Time Fields -->
+            <div class="form-group">
+                <label>{{ form.date.label_tag }}</label>
+                {{ form.date }}
+            </div>
+    
+            <div class="form-group">
+                <label>{{ form.time.label_tag }}</label>
+                {{ form.time }}
+            </div>
+    
+            <!-- Duration Field (PC Rental) -->
+            <div class="form-group">
+                <label>{{ form.duration.label_tag }}</label>
+                {{ form.duration }}
+            </div>
+    
+            <!-- File Upload Field -->
+            <div class="form-group">
+                <label>{{ form.file.label_tag }}</label>
+                {{ form.file }}
+            </div>
+    
+            <!-- Number of Pages Field (Hidden by default) -->
+            <div class="form-group" id="numberOfPagesContainer" style="display: none;">
+                <label>{{ form.number_of_pages.label_tag }}</label>
+                {{ form.number_of_pages }}
+            </div>
+    
+            <!-- Additional Description -->
+            <div class="form-group">
+                <label>{{ form.description.label_tag }}</label>
+                {{ form.description }}
+            </div>
+
+            <!-- Hidden payment_status and discount fields -->
+            {{ form.payment_status.as_hidden }} <!-- Hidden Payment Status -->
+            {{ form.discount.as_hidden }} <!-- Hidden Discount -->
+
+            <h2>After submitting reservation, please go to dashboard and click on the reservation to fininsh payment</h2>
+            <!-- Submit Button -->
+            <div class="form-group button-container">
+                <button type="submit" class="submit-button">Submit Reservation</button><br>
+                <button type="button" class="cancel-button" onclick="window.location.href='{% url 'customer_dashboard' %}'">Cancel</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

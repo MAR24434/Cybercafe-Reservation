@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation Detail</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <div class="navbar">
+        Cybercafe Reservation - Reservation Detail
+    </div>
+
+    <div id="detailContainer">
+        <h2>Edit Reservation #{{ reservation.reservation_id }}</h2>
+    
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- Render all fields except Payment Status and Discount -->
+            {% for field in form %}
+                {% if field.name not in "payment_status discount" %}
+                    <div>
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            
+            <!-- Payment Status Field -->
+            <div id="paymentStatusContainer" class="{% if request.session.status == 'customer' %}hidden-fields{% endif %}">
+                <label for="id_payment_status">Payment status:</label>
+                {{ form.payment_status }}
+            </div>
+        
+            <!-- Discount Field -->
+            <div id="discountContainer" class="{% if request.session.status == 'customer' %}hidden-fields{% endif %}">
+                <label for="id_discount">Discount:</label>
+                {{ form.discount }}
+            </div>
+        
+            {% if request.session.status == 'customer' %}
+                <button type="button" onclick="window.location.href='{% url 'payment_page' reservation.reservation_id %}'">Make Payment</button>
+            {% endif %}
+        
+            {% if request.session.status != 'customer' %}
+                <button type="submit">Save Changes</button>
+            {% endif %}
+        </form>
+    
+        <!-- Uploaded file download -->
+        <h3>Uploaded Files</h3>
+{% if reservation.file %}
+    <ul>
+        <li>
+            <a href="{% url 'download_file' reservation.reservation_id 'file' %}">Download Uploaded File</a>
+        </li>
+    </ul>
+{% else %}
+    <p>No files uploaded for this reservation.</p>
+{% endif %}
+
+<h3>Uploaded Receipt</h3>
+{% if reservation.receipt %}
+    <ul>
+        <li>
+            <a href="{% url 'download_file' reservation.reservation_id 'receipt' %}">Download Receipt</a>
+        </li>
+    </ul>
+{% else %}
+    <p>No receipt uploaded for this reservation.</p>
+{% endif %}
+    
+        <button onclick="window.history.back();">Go Back</button>
+    </div>
+</body>
+</html>

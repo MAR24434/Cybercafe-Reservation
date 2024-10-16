@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Payment</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <div class="navbar">
+        Cybercafe Reservation - Make Payment
+    </div>
+
+    <div id="paymentContainer">
+        <h2>Make Payment for Reservation #{{ reservation.reservation_id }}</h2>
+    
+        <!-- QR Code Section -->
+        <div class="qr-code-container">
+            <img src="{% static 'qr_code.png' %}" alt="Payment QR Code" id="qr-code" style="max-height: 600px; max-width: 70%;"><br>
+            <a href="{% static 'qr_code.png' %}" download="QR_Code.png">
+                <button>Download QR Code</button>
+            </a>
+        </div>
+    
+        <!-- Receipt Upload -->
+        <h3>Upload Receipt</h3>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="receipt">Upload Receipt:</label>
+            <input type="file" name="receipt" id="receipt">
+            <button type="submit">Submit Receipt</button>
+        </form>
+    
+        <button onclick="window.history.back();">Go Back</button>
+    </div>
+</body>
+</html>

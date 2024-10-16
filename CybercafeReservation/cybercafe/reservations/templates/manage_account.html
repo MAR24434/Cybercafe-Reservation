@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Accounts</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <div class="navbar">
+        Cybercafe Reservation - Manage Accounts
+    </div>
+
+    <div id="accountContainer">
+        <h2>Account List</h2>
+        <a href="{% url 'add_account' %}">
+            <button type="button">Add Account</button>
+        </a>
+        <table id="accountTable">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Status</th>  <!-- Optionally include status if needed -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in user_accounts %}
+                <tr onclick="window.location.href='{% url 'account_detail' account.id %}'">  <!-- Use account.id -->
+                    <td>{{ account.username }}</td>
+                    <td>{{ account.email }}</td>
+                    <td>{{ account.name }}</td>
+                    <td>{{ account.status }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No accounts found.</td>  <!-- Adjust colspan for the number of columns -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <button id="backButton" onclick="window.location.href='{% url 'admin_dashboard' %}'">Back to Dashboard</button>
+</body>
+</html>

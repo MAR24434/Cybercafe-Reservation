@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Report</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <div class="navbar">
+        Cybercafe Reservation - Generate Report
+    </div>
+
+    <div id="formContainer">
+        <h2>Select Date Range for the Report</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="start_date">Starting Date:</label>
+                <input type="date" id="start_date" name="start_date" required>
+            </div>
+            <div class="form-group">
+                <label for="end_date">Ending Date:</label>
+                <input type="date" id="end_date" name="end_date" value="{{ default_end_date }}" required>
+            </div>
+            <button type="submit">Generate Report</button>
+        </form>
+    </div>
+
+    {% if reservations %}
+    <div id="reportContainer">
+        <h3>Generated Report</h3>
+        <p>Total Reservations: {{ reservations.count }}</p>
+        <ul>
+            {% for reservation in reservations %}
+            <li>
+                Reservation ID: {{ reservation.reservation_id }},
+                Date: {{ reservation.date }},
+                Customer: {{ reservation.customer.username }},
+                Total Price: ${{ reservation.total_price }},
+                Payment Status: {{ reservation.payment_status }}
+            </li>
+            {% endfor %}
+        </ul>
+
+        <!-- Download report button -->
+        <a href="{% url 'download_report' %}?start_date={{ start_date }}&end_date={{ end_date }}">
+            <button>Download Report</button>
+        </a>
+
+        <!-- Go back button -->
+        <button onclick="window.location.href='{% url 'admin_dashboard' %}'">Go Back</button>
+    </div>
+    {% endif %}
+</body>
+</html>

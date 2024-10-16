@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservations List</title>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <h1>Reservations List</h1>
+
+    <!-- Form to filter by date -->
+    <form method="GET" action="">
+        <label for="date">Select a Date:</label>
+        <input type="date" id="date" name="date" value="{{ selected_date }}">
+        <button type="submit">Filter</button>
+    </form>
+
+    <!-- Display the reservations in a table -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Reservation ID</th>
+                <th>User</th>
+                <th>Computer ID</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Final Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reservation in reservations %}
+            <tr onclick="window.location.href='{% url 'reservation_detail' reservation.id %}'" style="cursor: pointer;">
+                <td>{{ reservation.id }}</td>
+                <td>{{ reservation.user.username }}</td>
+                <td>{{ reservation.computer_id }}</td>
+                <td>{{ reservation.date }}</td>
+                <td>{{ reservation.time }}</td>
+                <td>{{ reservation.final_price }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">No reservations found for this date.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{% url 'index' %}">Back to Home</a>
+</body>
+</html>

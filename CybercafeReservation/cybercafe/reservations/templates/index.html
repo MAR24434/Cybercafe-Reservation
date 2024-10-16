@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    
+</head>
+<body>
+    <!-- Blue Bar with Title -->
+    <div class="navbar">
+        Cybercafe Reservation
+    </div>
+    <!-- Container for form and text -->
+    <div id="formContainer">
+        <!-- Welcome and Login text -->
+        <h2>Welcome</h2>
+        <h4>Login to continue</h4>
+
+        <!-- Login Form -->
+        <form method="post" id="loginForm">
+            {% csrf_token %}
+            <input type="text" id="username" name="username" placeholder="Username" required><br>
+            <input type="password" id="password" name="password" placeholder="Password" required><br>
+
+            <!-- Buttons below inputs -->
+            <button type="submit">Login</button><br>
+            <a href="{% url 'signup' %}">
+                <button type="button" id="signupButton">Sign Up</button>
+            </a>
+            <!-- JavaScript for Success Messages -->
+            <script>
+                {% if messages %}
+                    {% for message in messages %}
+                        alert("{{ message }}");
+                    {% endfor %}
+                {% endif %}
+            </script>
+        </form>
+    </div>
+
+    
+</body>
+</html>
