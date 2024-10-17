@@ -28,29 +28,30 @@
         </form>
     </div>
 
-    {% if reservations %}
+    {% if total_reservations %}
     <div id="reportContainer">
-        <h3>Generated Report</h3>
-        <p>Total Reservations: {{ reservations.count }}</p>
-        <ul>
-            {% for reservation in reservations %}
-            <li>
-                Reservation ID: {{ reservation.reservation_id }},
-                Date: {{ reservation.date }},
-                Customer: {{ reservation.customer.username }},
-                Total Price: ${{ reservation.total_price }},
-                Payment Status: {{ reservation.payment_status }}
-            </li>
-            {% endfor %}
-        </ul>
+        <h3>Business Report</h3>
+        <p><strong>Report Date Range:</strong> {{ start_date }} to {{ end_date }}</p>
+        <p><strong>Total Reservations:</strong> {{ total_reservations }}</p>
+        <p><strong>Total Income:</strong> ${{ total_income }}</p>
+        <p><strong>Total Unpaid Income (Pending):</strong> ${{ pending_income }}</p>
+        <p><strong>Total Paid Income (Completed):</strong> ${{ completed_income }}</p>
+        <p><strong>Average Daily Revenue:</strong> ${{ average_daily_revenue }}</p>
 
-        <!-- Download report button -->
+        <h4>PC Rentals Summary</h4>
+        <p>Total PC Rentals: {{ pc_rental_count }}</p>
+        <p>Total Hours Booked: {{ total_hours_booked }} hours</p>
+        <p>Total Income from PC Rentals: ${{ pc_rental_income }}</p>
+
+        <h4>Printing Services Summary</h4>
+        <p>Total Printing Reservations: {{ printing_count }}</p>
+        <p>Total Pages Printed: {{ total_pages_printed }}</p>
+        <p>Total Income from Printing Services: ${{ printing_income }}</p>
+
         <a href="{% url 'download_report' %}?start_date={{ start_date }}&end_date={{ end_date }}">
             <button>Download Report</button>
         </a>
-
-        <!-- Go back button -->
-        <button onclick="window.location.href='{% url 'admin_dashboard' %}'">Go Back</button>
+        <button id="backButton" onclick="window.location.href='{% url 'admin_dashboard' %}'">Back to Dashboard</button>
     </div>
     {% endif %}
 </body>

@@ -1,6 +1,6 @@
 from reportlab.lib.pagesizes import letter
 import io
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import make_password, check_password
@@ -188,12 +188,16 @@ def update_account_view(request, account_id):
 
 def delete_account_view(request, account_id):
     account = get_object_or_404(UserAccount, id=account_id)
+    
+    # Only allow deletion via POST request to prevent accidental GET requests
     if request.method == 'POST':
         account.delete()
-        return redirect('manage_account')  # Redirect after deletion
+        messages.success(request, f"Account '{account.username}' deleted successfully.")
+        return redirect('manage_account')  # Redirect to the accounts management page after deletion
 
-    return render(request, 'delete_account_confirmation.html', {'account': account})  # Render a confirmation template
+    return redirect('manage_account')
 
+    return redirect('manage_account')
 def manage_services_view(request):
     pc_rentals = PCRental.objects.all()
     printing_options = PrintingOption.objects.all()
@@ -351,11 +355,43 @@ def generate_report_view(request):
         # Filter reservations within the date range
         reservations = Reservation.objects.filter(date__range=[start_date, end_date])
 
-        # Pass the filtered reservations and date range to the template
+        # Initialize summary variables
+        total_reservations = reservations.count()
+        total_income = sum(r.total_price for r in reservations)
+        pending_income = sum(r.total_price for r in reservations if r.payment_status == 'pending')
+        completed_income = sum(r.total_price for r in reservations if r.payment_status == 'completed')
+        
+        # PC Rental related data
+        pc_rental_reservations = reservations.filter(pc_rental__isnull=False)
+        pc_rental_count = pc_rental_reservations.count()
+        total_hours_booked = sum(r.duration for r in pc_rental_reservations)
+        pc_rental_income = sum(r.total_price for r in pc_rental_reservations)
+        
+        # Printing service related data
+        printing_reservations = reservations.filter(printing_option__isnull=False)
+        printing_count = printing_reservations.count()
+        total_pages_printed = sum(r.number_of_pages for r in printing_reservations)
+        printing_income = sum(r.total_price for r in printing_reservations)
+        
+        # Calculate average daily revenue
+        total_days = (now().date() - reservations.order_by('date').first().date).days or 1
+        average_daily_revenue = total_income / total_days
+
+        # Pass the calculated data to the template
         return render(request, 'generate_report.html', {
-            'reservations': reservations,
             'start_date': start_date,
             'end_date': end_date,
+            'total_reservations': total_reservations,
+            'total_income': total_income,
+            'pending_income': pending_income,
+            'completed_income': completed_income,
+            'pc_rental_count': pc_rental_count,
+            'total_hours_booked': total_hours_booked,
+            'pc_rental_income': pc_rental_income,
+            'printing_count': printing_count,
+            'total_pages_printed': total_pages_printed,
+            'printing_income': printing_income,
+            'average_daily_revenue': average_daily_revenue,
         })
     
     # If it's a GET request, render the form with default end date (current date)
@@ -365,7 +401,7 @@ def generate_report_view(request):
     })
     
 def generate_report(request):
-    # Get the date range from the request (or use a default)
+    # Get the date range from the request
     start_date = request.GET.get('start_date', None)
     end_date = request.GET.get('end_date', now().date())
 
@@ -383,45 +419,76 @@ def generate_report(request):
     p = canvas.Canvas(response, pagesize=letter)
     width, height = letter
 
-    # Add content to the PDF
+    # Set up fonts and positions
     p.setFont("Helvetica-Bold", 16)
     p.drawString(100, height - 50, "Cybercafe Reservation Business Report")
 
     p.setFont("Helvetica", 12)
     p.drawString(100, height - 100, f"Report Date Range: {start_date} to {end_date}")
     p.drawString(100, height - 120, f"Generated on: {now().date()}")
-    
+
+    # Summarize the total reservations and income
     total_reservations = reservations.count()
     total_income = sum(r.total_price for r in reservations)
-    
+
+    # PC Rental Summary
     pc_rental_count = reservations.filter(pc_rental__isnull=False).count()
     total_hours = sum(r.duration for r in reservations if r.pc_rental)
     pc_rental_income = sum(r.total_price for r in reservations if r.pc_rental)
+    average_hourly_rate = pc_rental_income / total_hours if total_hours > 0 else 0
 
+    # Printing Services Summary
     printing_count = reservations.filter(printing_option__isnull=False).count()
     total_pages = sum(r.number_of_pages for r in reservations if r.printing_option)
     printing_income = sum(r.total_price for r in reservations if r.printing_option)
+    average_price_per_page = printing_income / total_pages if total_pages > 0 else 0
+
+    # Calculate average daily revenue
+    total_days = (now().date() - reservations.order_by('date').first().date).days or 1
+    average_daily_revenue = total_income / total_days
 
     # Write the report summary
     y_position = height - 150
     p.drawString(100, y_position, f"Total Reservations: {total_reservations}")
     p.drawString(100, y_position - 20, f"Total Income: ${total_income:.2f}")
+    p.drawString(100, y_position - 40, f"Average Daily Revenue: ${average_daily_revenue:.2f}")
 
-    y_position -= 60
+    # PC Rental Summary
+    y_position -= 80
     p.setFont("Helvetica-Bold", 14)
     p.drawString(100, y_position, "PC Rentals Summary")
     p.setFont("Helvetica", 12)
     p.drawString(100, y_position - 20, f"Total PC Rentals: {pc_rental_count}")
     p.drawString(100, y_position - 40, f"Total Hours Booked: {total_hours} hours")
-    p.drawString(100, y_position - 60, f"Total PC Rental Income: ${pc_rental_income:.2f}")
+    p.drawString(100, y_position - 60, f"Average Hourly Rate: ${average_hourly_rate:.2f}")
+    p.drawString(100, y_position - 80, f"Total PC Rental Income: ${pc_rental_income:.2f}")
 
+    # Printing Services Summary
     y_position -= 100
     p.setFont("Helvetica-Bold", 14)
     p.drawString(100, y_position, "Printing Services Summary")
     p.setFont("Helvetica", 12)
     p.drawString(100, y_position - 20, f"Total Printing Reservations: {printing_count}")
     p.drawString(100, y_position - 40, f"Total Pages Printed: {total_pages}")
-    p.drawString(100, y_position - 60, f"Total Printing Income: ${printing_income:.2f}")
+    p.drawString(100, y_position - 60, f"Average Price per Page: ${average_price_per_page:.2f}")
+    p.drawString(100, y_position - 80, f"Total Printing Income: ${printing_income:.2f}")
+
+    # Discount Summary
+    y_position -= 100
+    total_discount = sum(r.discount for r in reservations)
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(100, y_position, "Discount Summary")
+    p.setFont("Helvetica", 12)
+    p.drawString(100, y_position - 20, f"Total Discount Given: ${total_discount:.2f}")
+
+    # Top Customers (based on total reservations)
+    top_customers = reservations.values('customer__username').annotate(total=Count('customer')).order_by('-total')[:5]
+    y_position -= 100
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(100, y_position, "Top 5 Customers by Reservations")
+    p.setFont("Helvetica", 12)
+    for i, customer in enumerate(top_customers):
+        p.drawString(100, y_position - 20 - (i * 20), f"{i + 1}. {customer['customer__username']} - {customer['total']} reservations")
 
     # Close the PDF object
     p.showPage()
@@ -436,20 +503,61 @@ def download_report(request):
     # Filter reservations by the date range
     reservations = Reservation.objects.filter(date__range=[start_date, end_date])
 
-    # Prepare report content
+    # Initialize summary variables
+    total_reservations = reservations.count()
+    total_income = sum(r.total_price for r in reservations)
+    pending_income = sum(r.total_price for r in reservations if r.payment_status == 'pending')
+    completed_income = sum(r.total_price for r in reservations if r.payment_status == 'completed')
+    unpaid_income = pending_income  # Unpaid income is same as pending income
+    
+    # PC Rental related data
+    pc_rental_reservations = reservations.filter(pc_rental__isnull=False)
+    pc_rental_count = pc_rental_reservations.count()
+    total_hours_booked = sum(r.duration for r in pc_rental_reservations)
+    pc_rental_income = sum(r.total_price for r in pc_rental_reservations)
+    
+    # Printing service related data
+    printing_reservations = reservations.filter(printing_option__isnull=False)
+    printing_count = printing_reservations.count()
+    total_pages_printed = sum(r.number_of_pages for r in printing_reservations)
+    printing_income = sum(r.total_price for r in printing_reservations)
+    
+    # Calculate average daily revenue
+    total_days = (now().date() - reservations.order_by('date').first().date).days or 1
+    average_daily_revenue = total_income / total_days
+
+    # Prepare the report content
     report_content = io.StringIO()
     report_content.write(f"Cybercafe Reservation Business Report\n")
     report_content.write(f"Report Date Range: {start_date} to {end_date}\n")
     report_content.write(f"Generated on: {now().date()}\n\n")
-    report_content.write(f"Total Reservations: {reservations.count()}\n\n")
 
-    for reservation in reservations:
-        report_content.write(f"Reservation ID: {reservation.reservation_id}\n")
-        report_content.write(f"Customer: {reservation.customer.username}\n")
-        report_content.write(f"Date: {reservation.date}\n")
-        report_content.write(f"Total Price: ${reservation.total_price:.2f}\n")
-        report_content.write(f"Payment Status: {reservation.payment_status}\n")
-        report_content.write(f"-----------------------------------\n")
+    # General Summary
+    report_content.write(f"Total Reservations: {total_reservations}\n")
+    report_content.write(f"Total Income: ${total_income:.2f}\n")
+    report_content.write(f"Total Unpaid Income (Pending): ${unpaid_income:.2f}\n")
+    report_content.write(f"Total Paid Income (Completed): ${completed_income:.2f}\n")
+    report_content.write(f"Average Daily Revenue: ${average_daily_revenue:.2f}\n\n")
+
+    # PC Rentals Summary
+    report_content.write("PC Rentals Summary:\n")
+    report_content.write(f"Total PC Rentals: {pc_rental_count}\n")
+    report_content.write(f"Total Hours Booked: {total_hours_booked} hours\n")
+    report_content.write(f"Total Income from PC Rentals: ${pc_rental_income:.2f}\n\n")
+
+    # Printing Services Summary
+    report_content.write("Printing Services Summary:\n")
+    report_content.write(f"Total Printing Reservations: {printing_count}\n")
+    report_content.write(f"Total Pages Printed: {total_pages_printed} pages\n")
+    report_content.write(f"Total Income from Printing Services: ${printing_income:.2f}\n\n")
+
+    # Payment Status Breakdown
+    report_content.write("Payment Status Breakdown:\n")
+    report_content.write(f"Pending Reservations (Unpaid): {reservations.filter(payment_status='pending').count()}\n")
+    report_content.write(f"Completed Reservations (Paid): {reservations.filter(payment_status='completed').count()}\n")
+    
+    # Breakdown by Service Type (Optional)
+    # You can add breakdowns for other service types, special offers, or discounts if required
 
     # Create response for downloading the report as a text file
     response = HttpResponse(report_content.getvalue(), content_type='text/plain')
