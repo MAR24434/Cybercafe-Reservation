@@ -182,6 +182,19 @@ input[type="text"], input[type="password"], input[type="email"] {
     box-sizing: border-box;
 }
 
+.delete-button {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.delete-button:hover {
+    background-color: darkred;
+}
+
 /* Button styling */
 button {
     width: 320px;

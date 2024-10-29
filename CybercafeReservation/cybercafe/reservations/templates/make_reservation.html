@@ -76,6 +76,9 @@
             <!-- Submit Button -->
             <div class="form-group button-container">
                 <button type="submit" class="submit-button">Submit Reservation</button><br>
+                {% if error_message %}
+                    <p class="error-message">{{ error_message }}</p>
+                {% endif %}
                 <button type="button" class="cancel-button" onclick="window.location.href='{% url 'customer_dashboard' %}'">Cancel</button>
             </div>
         </form>

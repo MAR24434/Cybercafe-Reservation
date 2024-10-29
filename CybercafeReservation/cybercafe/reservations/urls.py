@@ -23,6 +23,7 @@ urlpatterns = [
     path('delete-pc-rental/<int:rental_id>/', views.delete_pc_rental_view, name='delete_pc_rental'),
     path('delete-printing-option/<int:option_id>/', views.delete_printing_option_view, name='delete_printing_option'),
     path('payment/<int:reservation_id>/', views.payment_page, name='payment_page'),
+    path('delete-reservation/<int:reservation_id>/', views.delete_reservation, name='delete_reservation'),
     path('generate_report/', views.generate_report_view, name='generate_report'),
     path('download_report/', views.download_report, name='download_report'),
     path('logout/', views.logout_view, name='logout'),

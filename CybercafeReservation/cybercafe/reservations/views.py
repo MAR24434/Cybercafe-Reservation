@@ -1,3 +1,4 @@
+from django.utils import timezone  # Correct timezone import
 from reportlab.lib.pagesizes import letter
 import io
 from django.http import Http404, HttpResponse, HttpResponseNotAllowed
@@ -304,33 +305,46 @@ def make_reservation(request):
         messages.error(request, "You must be logged in to make a reservation.")
         return redirect('login')
 
+    error_message = None  # Define error message variable
+
     if request.method == 'POST':
-        form = ReservationForm(request.POST, request.FILES)  # Include request.FILES to handle file uploads
+        form = ReservationForm(request.POST, request.FILES)
         if form.is_valid():
-            reservation = form.save(commit=False)
+            pc_rental = form.cleaned_data['pc_rental']
+            start_date = form.cleaned_data['date']
+            start_time = form.cleaned_data['time']
+            duration = form.cleaned_data['duration']
+            end_time = (timezone.datetime.combine(start_date, start_time) + timezone.timedelta(hours=duration)).time()
 
-            # Get customer ID from session and retrieve the UserAccount instance
-            user_id = request.session.get('user_id')
-            if user_id:
-                customer = UserAccount.objects.get(id=user_id)  # Retrieve the UserAccount instance
-                reservation.customer = customer  # Assign the instance to reservation.customer
+            overlaps = Reservation.objects.filter(
+                pc_rental=pc_rental,
+                date=start_date,
+                time__lt=end_time,
+                time__gte=start_time
+            )
+
+            if overlaps.exists():
+                error_message = "The selected time is already booked. Please choose another service or time slot."
+
             else:
-                messages.error(request, "You must be logged in to make a reservation.")
-                return redirect('login')
+                reservation = form.save(commit=False)
+                reservation.customer_id = request.session.get('user_id')
+                reservation.save()
+                messages.success(request, "Reservation created successfully.")
+                return redirect('customer_dashboard')
 
-            reservation.save()
-            messages.success(request, "Reservation created successfully.")
-            return redirect('customer_dashboard')  # Redirect to the customer dashboard after successful reservation
         else:
-            print("Form is invalid", form.errors)  # Debug: Print form errors
-            messages.error(request, "Please correct the errors below.")
+            messages.error(request, "Please correct the errors in the form.")
     else:
         form = ReservationForm()
 
-    # Get the username from the session
-    username = request.session.get('username', '')
+    return render(request, 'make_reservation.html', {'form': form, 'username': request.session.get('username'), 'error_message': error_message})
 
-    return render(request, 'make_reservation.html', {'form': form, 'username': username})
+def delete_reservation(request, reservation_id):
+    reservation = get_object_or_404(Reservation, id=reservation_id)
+    reservation.delete()
+    messages.success(request, "Reservation deleted successfully.")
+    return redirect('customer_dashboard')
 
 def payment_page(request, reservation_id):
     reservation = get_object_or_404(Reservation, reservation_id=reservation_id)

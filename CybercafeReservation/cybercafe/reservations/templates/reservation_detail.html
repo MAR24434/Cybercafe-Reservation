@@ -15,6 +15,7 @@
     <div id="detailContainer">
         <h2>Edit Reservation #{{ reservation.reservation_id }}</h2>
     
+        <!-- Main Form for Reservation Updates -->
         <form method="POST">
             {% csrf_token %}
             
@@ -48,29 +49,37 @@
                 <button type="submit">Save Changes</button>
             {% endif %}
         </form>
-    
-        <!-- Uploaded file download -->
-        <h3>Uploaded Files</h3>
-{% if reservation.file %}
-    <ul>
-        <li>
-            <a href="{% url 'download_file' reservation.reservation_id 'file' %}">Download Uploaded File</a>
-        </li>
-    </ul>
-{% else %}
-    <p>No files uploaded for this reservation.</p>
-{% endif %}
 
-<h3>Uploaded Receipt</h3>
-{% if reservation.receipt %}
-    <ul>
-        <li>
-            <a href="{% url 'download_file' reservation.reservation_id 'receipt' %}">Download Receipt</a>
-        </li>
-    </ul>
-{% else %}
-    <p>No receipt uploaded for this reservation.</p>
-{% endif %}
+        <!-- Delete Reservation Form - Separate Form -->
+        {% if request.session.status != 'customer' %}
+            <form method="POST" action="{% url 'delete_reservation' reservation.reservation_id %}" onsubmit="return confirm('Are you sure you want to delete this reservation?');">
+                {% csrf_token %}
+                <button type="submit" class="delete-button">Delete Reservation</button>
+            </form>
+        {% endif %}
+
+        <!-- Uploaded Files Section -->
+        <h3>Uploaded Files</h3>
+        {% if reservation.file %}
+            <ul>
+                <li>
+                    <a href="{% url 'download_file' reservation.reservation_id 'file' %}">Download Uploaded File</a>
+                </li>
+            </ul>
+        {% else %}
+            <p>No files uploaded for this reservation.</p>
+        {% endif %}
+
+        <h3>Uploaded Receipt</h3>
+        {% if reservation.receipt %}
+            <ul>
+                <li>
+                    <a href="{% url 'download_file' reservation.reservation_id 'receipt' %}">Download Receipt</a>
+                </li>
+            </ul>
+        {% else %}
+            <p>No receipt uploaded for this reservation.</p>
+        {% endif %}
     
         <button onclick="window.history.back();">Go Back</button>
     </div>
