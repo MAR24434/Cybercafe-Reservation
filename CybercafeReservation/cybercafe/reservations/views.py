@@ -368,6 +368,16 @@ def generate_report_view(request):
 
         # Filter reservations within the date range
         reservations = Reservation.objects.filter(date__range=[start_date, end_date])
+        
+        if not reservations.exists():
+           # Handle the case where no reservations are found
+           messages.warning(request, "No reservations found for the selected date range.")
+           return render(request, 'generate_report.html', {
+               'reservations': None,
+               'start_date': start_date,
+               'end_date': end_date,
+               'no_reservations_message': "No reservations found for the selected date range."
+           })
 
         # Initialize summary variables
         total_reservations = reservations.count()
@@ -390,6 +400,7 @@ def generate_report_view(request):
         # Calculate average daily revenue
         total_days = (now().date() - reservations.order_by('date').first().date).days or 1
         average_daily_revenue = total_income / total_days
+        average_daily_revenue = round(total_income / total_days, 2)
 
         # Pass the calculated data to the template
         return render(request, 'generate_report.html', {

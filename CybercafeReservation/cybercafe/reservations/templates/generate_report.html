@@ -28,7 +28,9 @@
         </form>
     </div>
 
-    {% if total_reservations %}
+    {% if no_reservations_message %}
+        <p class="no-reservations">{{ no_reservations_message }}</p>
+    {% elif total_reservations %}
     <div id="reportContainer">
         <h3>Business Report</h3>
         <p><strong>Report Date Range:</strong> {{ start_date }} to {{ end_date }}</p>
