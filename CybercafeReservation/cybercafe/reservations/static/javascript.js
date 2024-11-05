@@ -26,4 +26,3 @@ document.addEventListener('DOMContentLoaded', function() {
         discountLabel.nextElementSibling.style.display = 'none'; // Hides the associated input
     }
 });
-

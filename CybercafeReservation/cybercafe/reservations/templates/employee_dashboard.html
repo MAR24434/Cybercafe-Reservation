@@ -6,6 +6,20 @@
     <title>Employee Dashboard</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <script>
+        function filterReservations() {
+            // Get the selected date value from the input
+            const filterDate = document.getElementById('filterDate').value;
+            
+            // Check if a date is selected
+            if (filterDate) {
+                // Redirect to the customer_dashboard with the selected date as a query parameter
+                window.location.href = '{% url "customer_dashboard" %}?filter_date=' + encodeURIComponent(filterDate);
+            } else {
+                alert("Please select a date."); // Alert if no date is selected
+            }
+        }
+    </script>
 </head>
 <body>
     <!-- Blue Bar with Title -->
@@ -23,7 +37,7 @@
                 <button type="button" id="resetButton" onclick="window.location.href='{% url 'customer_dashboard' %}'">
                     <img src="{% static 'reset-icon.png' %}" alt="Reset" width="20px" height="20px">
                 </button>
-                <button type="submit" id="filterButton">
+                <button type="submit" id="filterButton" onclick="filterReservations()">
                     <img src="{% static 'filter-icon.png' %}" alt="Filter" width="20px" height="20px">
                 </button>
                 <input type="date" id="filterDate" value="{{ current_date }}">
